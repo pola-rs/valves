@@ -1,10 +1,7 @@
 from setuptools import setup, find_packages
 
 
-base_packages = [
-    "pandas>=1.0.0", 
-    "polars>=0.10.24"
-]
+base_packages = ["pandas>=1.0.0", "polars>=0.10.24"]
 
 test_packages = [
     "pytest>=5.4.3",
@@ -12,6 +9,7 @@ test_packages = [
     "flake8>=3.8.3",
     "mktestdocs>=0.1.0",
     "interrogate>=1.2.0",
+    "pre-commit>=2.15.0",
 ]
 
 docs_packages = [
