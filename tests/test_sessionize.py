@@ -1,9 +1,12 @@
 import pytest
 import pandas as pd
 import polars as pl
+import dask.dataframe as dd
 
-from valves.pandas import sessionize as sess_pd
 from valves.polars import sessionize as sess_pl
+from valves.pandas import sessionize as sess_pd
+from valves.dask import sessionize as sess_dd
+
 
 data_three_sessions = [
     {"user": 1, "timestamp": "2020-01-01 00:00:00"},
@@ -52,4 +55,20 @@ def test_polars_sessionize(data, result):
         .with_column(pl.col("timestamp").str.strptime(pl.Datetime))
         .pipe(sess_pl)
     )
+    assert list(dataf["session"]) == result
+
+
+@pytest.mark.parametrize(
+    "data, result",
+    [
+        (data_three_sessions, [1, 1, 2, 2]),
+        (data_four_sessions, [1, 1, 2, 3, 4]),
+    ],
+)
+def test_dask_sessionize(data, result):
+    """It needs to work on some simple dask datasets"""
+    dataf_pd = pd.DataFrame(data).assign(
+        timestamp=lambda d: pd.to_datetime(d["timestamp"])
+    )
+    dataf = dd.from_pandas(dataf_pd, npartitions=1).pipe(sess_dd)
     assert list(dataf["session"]) == result
