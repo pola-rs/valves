@@ -2,8 +2,8 @@ import pytest
 import pandas as pd
 import polars as pl
 
-from valve.pandas import sessionize as sess_pd
-from valve.polars import sessionize as sess_pl
+from valves.pandas import sessionize as sess_pd
+from valves.polars import sessionize as sess_pl
 
 data_three_sessions = [
     {"user": 1, "timestamp": "2020-01-01 00:00:00"},

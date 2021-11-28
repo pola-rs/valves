@@ -1,14 +1,14 @@
 black:
-	black valve tests setup.py --check
+	black valves tests setup.py --check
 
 flake:
-	flake8 valve tests setup.py
+	flake8 valves tests setup.py
 
 test:
 	pytest
 
 types:
-	python -m pyanalyze valve tests
+	python -m pyanalyze valves tests
 
 install:
 	python -m pip install -e ".[dev]"
@@ -16,7 +16,7 @@ install:
 
 interrogate:
 	interrogate -vv --ignore-nested-functions --ignore-semiprivate --ignore-private --ignore-magic --ignore-module --ignore-init-method --fail-under 100 tests
-	interrogate -vv --ignore-nested-functions --ignore-semiprivate --ignore-private --ignore-magic --ignore-module --ignore-init-method --fail-under 100 valve
+	interrogate -vv --ignore-nested-functions --ignore-semiprivate --ignore-private --ignore-magic --ignore-module --ignore-init-method --fail-under 100 valves
 
 pypi:
 	python setup.py sdist
