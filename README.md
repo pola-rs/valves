@@ -1,4 +1,4 @@
-<img src="valve-icon.svg" width=255 height=255 align="right">
+<img src="valve-icon.svg" width=170 height=170 align="right">
 
 # valve
 
