@@ -1,14 +1,14 @@
 black:
-	black valve tests setup.py --check
+	black valves tests setup.py --check
 
 flake:
-	flake8 valve tests setup.py
+	flake8 valves tests setup.py
 
 test:
 	pytest
 
 types:
-	python -m pyanalyze valve tests
+	python -m pyanalyze valves tests
 
 install:
 	python -m pip install -e ".[dev]"

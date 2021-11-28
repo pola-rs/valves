@@ -21,7 +21,7 @@ docs_packages = [
 dev_packages = base_packages + test_packages + docs_packages
 
 setup(
-    name="valve",
+    name="valves",
     version="0.1.0",
     packages=find_packages(),
     install_requires=base_packages,
