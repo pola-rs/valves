@@ -5,7 +5,7 @@ def sessionize(dataf, user_col="user", ts_col="timestamp", threshold=20 * 60):
     This function is meant to be used in a `.pipe()`-line.
 
     Arguments:
-        - dataf: pandas dataframe
+        - dataf: dask dataframe
         - user_col: name of the column containing the user id
         - ts_col: name of the column containing the timestamp
         - threshold: time in seconds to consider a user inactive
