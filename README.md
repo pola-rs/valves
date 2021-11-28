@@ -3,3 +3,7 @@
 # valve
 
 > **Warning**: the project is very much work in progress.
+
+Valves is a collection of `.pipe()`-able functions that you can plug into your data pipeline. 
+
+This project aimes to host a few performant implementations of functions that are common in industry. This gives us an opportunity to share sensible implementations but it also allows us to compare the performance across libraries. For now the project mainly targets polars, pandas and dask. 
