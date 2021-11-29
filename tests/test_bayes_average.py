@@ -1,9 +1,12 @@
 import pytest
 import polars as pl
 import pandas as pd
+import dask.dataframe as dd
 
 from valves.polars import bayes_average as bayes_av_pl
 from valves.pandas import bayes_average as bayes_av_pd
+from valves.dask import bayes_average as bayes_av_dd
+
 
 data_two_items = [
     {"item": 1, "rating": 1},
@@ -42,6 +45,25 @@ def test_bayes_average_pandas_heavy_smoothing():
     """pandas implementation works with heavy smoothing."""
     dataf = pd.DataFrame(data_two_items).pipe(
         bayes_av_pd, group_cols=["item"], target_col="rating", C=10000, prior_mean=10
+    )
+    for rating in list(dataf["bayes_avg"]):
+        assert pytest.approx(rating, 0.1) == 10
+
+
+def test_bayes_average_dask_no_smoothing():
+    """dask implementation works without any smoothing."""
+    dataf_pd = pd.DataFrame(data_two_items)
+    dataf = dd.from_pandas(dataf_pd, npartitions=1).pipe(
+        bayes_av_dd, group_cols=["item"], target_col="rating", C=0
+    )
+    assert list(dataf["bayes_avg"]) == [1.5, 1.5, 1.5, 1.5]
+
+
+def test_bayes_average_dask_heavy_smoothing():
+    """dask implementation works with heavy smoothing."""
+    dataf_pd = pd.DataFrame(data_two_items)
+    dataf = dd.from_pandas(dataf_pd, npartitions=1).pipe(
+        bayes_av_dd, group_cols=["item"], target_col="rating", C=10000, prior_mean=10
     )
     for rating in list(dataf["bayes_avg"]):
         assert pytest.approx(rating, 0.1) == 10
