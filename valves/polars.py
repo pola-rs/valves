@@ -52,6 +52,7 @@ def bayes_average(
         - target_col: name of the column containing the target value, typically a rating
         - C: smoothing parameter
         - prior_mean: optional, a prior mean to use instead of the mean of the target column
+        - out_col: name of the column to output
     """
     if prior_mean is None:
         prior_mean = dataf[target_col].mean()
