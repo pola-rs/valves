@@ -6,7 +6,7 @@ import dask.dataframe as dd
 from valves.polars import sessionize as sess_pl
 from valves.pandas import sessionize as sess_pd
 from valves.dask import sessionize as sess_dd
-
+from valves import sessionize
 
 data_three_sessions = [
     {"user": 1, "timestamp": "2020-01-01 00:00:00"},
@@ -33,12 +33,13 @@ data_four_sessions = [
 )
 def test_pandas_sessionize(data, result):
     """It needs to work on some simple pandas datasets"""
-    dataf = (
-        pd.DataFrame(data)
-        .assign(timestamp=lambda d: pd.to_datetime(d["timestamp"]))
-        .pipe(sess_pd)
+    dataf = pd.DataFrame(data).assign(
+        timestamp=lambda d: pd.to_datetime(d["timestamp"])
     )
-    assert dataf.session.tolist() == result
+    # Ensure the direct function call works
+    assert dataf.pipe(sess_pd)["session"].tolist() == result
+    # Ensure the multiple dispatch function call works
+    assert dataf.pipe(sessionize)["session"].tolist() == result
 
 
 @pytest.mark.parametrize(
@@ -50,12 +51,13 @@ def test_pandas_sessionize(data, result):
 )
 def test_polars_sessionize(data, result):
     """It needs to work on some simple polars datasets"""
-    dataf = (
-        pl.DataFrame(data)
-        .with_column(pl.col("timestamp").str.strptime(pl.Datetime))
-        .pipe(sess_pl)
+    dataf = pl.DataFrame(data).with_column(
+        pl.col("timestamp").str.strptime(pl.Datetime)
     )
-    assert list(dataf["session"]) == result
+    # Ensure the direct function call works
+    assert list(dataf.pipe(sess_pl)["session"]) == result
+    # Ensure the multiple dispatch function call works
+    assert list(dataf.pipe(sessionize)["session"]) == result
 
 
 @pytest.mark.parametrize(
@@ -70,5 +72,10 @@ def test_dask_sessionize(data, result):
     dataf_pd = pd.DataFrame(data).assign(
         timestamp=lambda d: pd.to_datetime(d["timestamp"])
     )
+    # Ensure the direct function call works
     dataf = dd.from_pandas(dataf_pd, npartitions=1).pipe(sess_dd)
+    assert list(dataf["session"]) == result
+
+    # Ensure the multiple dispatch function call works
+    dataf = dd.from_pandas(dataf_pd, npartitions=1).pipe(sessionize)
     assert list(dataf["session"]) == result
