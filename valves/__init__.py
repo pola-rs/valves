@@ -1,3 +1,40 @@
+try:
+    import polars as pl
+
+    _POLARS_AVAILABLE = True
+except ImportError:
+    _POLARS_AVAILABLE = False
+
+try:
+    import pandas as pd
+
+    _PANDAS_AVAILABLE = True
+except ImportError:
+    _PANDAS_AVAILABLE = False
+
+
+try:
+    import dask.dataframe as dd
+
+    _DASK_AVAILABLE = True
+except ImportError:
+    _DASK_AVAILABLE = False
+
+
+def _raise_dataf_error(dataf):
+    """Raises error based on availability of dataframe package."""
+    installed_packages = []
+    if _DASK_AVAILABLE:
+        installed_packages.append("dask")
+    if _PANDAS_AVAILABLE:
+        installed_packages.append("pandas")
+    if _POLARS_AVAILABLE:
+        installed_packages.append("polars")
+    raise ValueError(
+        f"Recieved {type(dataf)} dataframe. Are you sure this is installed? We can confirm {installed_packages} are installed."
+    )
+
+
 def sessionize(dataf, user_col="user", ts_col="timestamp", threshold=20 * 60):
     """
     Adds a session to the dataset, using multiple dispatch to proxy the correct backend.
@@ -10,21 +47,22 @@ def sessionize(dataf, user_col="user", ts_col="timestamp", threshold=20 * 60):
         - ts_col: name of the column containing the timestamp
         - threshold: time in seconds to consider a user inactive
     """
-    if "dask" in str(dataf.__class__):
+    if _DASK_AVAILABLE and isinstance(dataf, dd.DataFrame):
         # Import dask-related stuff only if dask is detected
         from .dask import sessionize as sess_dd
 
         return sess_dd(dataf, user_col, ts_col, threshold)
-    if "pandas" in str(dataf.__class__):
+    if _PANDAS_AVAILABLE and isinstance(dataf, pd.DataFrame):
         # Import pandas-related stuff only if pandas is detected
         from .pandas import sessionize as sess_pd
 
         return sess_pd(dataf, user_col, ts_col, threshold)
-    if "polars" in str(dataf.__class__):
+    if _POLARS_AVAILABLE and isinstance(dataf, pl.DataFrame):
         # Import polars-related stuff only if polars is detected
         from .polars import sessionize as sess_pl
 
         return sess_pl(dataf, user_col, ts_col, threshold)
+    _raise_dataf_error(dataf)
 
 
 def bayes_average(
@@ -49,18 +87,19 @@ def bayes_average(
         - prior_mean: optional, a prior mean to use instead of the mean of the target column
         - out_col: name of the column to output
     """
-    if "dask" in str(dataf.__class__):
+    if _DASK_AVAILABLE and isinstance(dataf, dd.DataFrame):
         # Import dask-related stuff only if dask is detected
         from .dask import bayes_average as bayes_dd
 
         return bayes_dd(dataf, group_cols, target_col, C, prior_mean, out_col)
-    if "pandas" in str(dataf.__class__):
+    if _PANDAS_AVAILABLE and isinstance(dataf, pd.DataFrame):
         # Import pandas-related stuff only if pandas is detected
         from .pandas import bayes_average as bayes_pd
 
         return bayes_pd(dataf, group_cols, target_col, C, prior_mean, out_col)
-    if "polars" in str(dataf.__class__):
+    if _POLARS_AVAILABLE and isinstance(dataf, pl.DataFrame):
         # Import polars-related stuff only if polars is detected
         from .polars import sessionize as bayes_pl
 
         return bayes_pl(dataf, group_cols, target_col, C, prior_mean, out_col)
+    _raise_dataf_error(dataf)
