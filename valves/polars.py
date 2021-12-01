@@ -64,7 +64,7 @@ def bayes_average(
     )
 
 
-def item_item_counts(dataf, user_col="user", item_col="item"):
+def item_item_counts(dataf, user_col="user", item_col="item", attach=False):
     """
     Computers item-item overlap counts from user-item interactions, useful for recommendations.
 
@@ -75,7 +75,7 @@ def item_item_counts(dataf, user_col="user", item_col="item"):
         - user_col: name of the column containing the user id
         - item_col: name of the column containing the item id
     """
-    return (
+    result = (
         dataf.with_columns(
             [
                 pl.col(pl.col(item_col))
@@ -96,6 +96,10 @@ def item_item_counts(dataf, user_col="user", item_col="item"):
                 .alias("n_both"),
             ]
         )
-        .select(["item", "item_rec", "n_item", "n_item_rec", "n_both"])
-        .drop_duplicates()
     )
+    if attach:
+        return result
+
+    return result.select(
+        ["item", "item_rec", "n_item", "n_item_rec", "n_both"]
+    ).drop_duplicates()
