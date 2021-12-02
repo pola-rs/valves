@@ -78,13 +78,10 @@ def item_item_counts(dataf, user_col="user", item_col="item"):
     return (
         dataf.with_columns(
             [
-                pl.col(item_col)
-                .list()
-                .over(user_col)
-                .explode()
-                .alias(f"{item_col}_rec"),
+                pl.col(item_col).list().over("user").alias(f"{item_col}_rec"),
             ]
         )
+        .explode(f"{item_col}_rec")
         .filter(pl.col(item_col) != pl.col(f"{item_col}_rec"))
         .with_columns(
             [
@@ -104,7 +101,7 @@ def item_item_counts(dataf, user_col="user", item_col="item"):
                 f"{item_col}",
                 f"{item_col}_rec",
                 f"n_{item_col}",
-                f"{item_col}_rec",
+                f"n_{item_col}_rec",
                 "n_both",
             ]
         )

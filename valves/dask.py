@@ -66,21 +66,21 @@ def item_item_counts(dataf, user_col="user", item_col="item"):
         - user_col: name of the column containing the user id
         - item_col: name of the column containing the item id
     """
+    user_items = dataf[["user", "item"]].drop_duplicates()
     return (
-        dataf[[user_col, item_col]]
-        .merge(dataf[[user_col, item_col]], how="left", on="user")
+        user_items.merge(user_items, how="left", on="user")
         .rename(columns={f"{item_col}_x": item_col, f"{item_col}_y": f"{item_col}_rec"})
         .loc[lambda d: d[item_col] != d[f"{item_col}_rec"]]
         .assign(
             **{
                 "n_both": lambda s: s.groupby([item_col, f"{item_col}_rec"])[
                     user_col
-                ].transform(lambda d: d.count()),
+                ].transform(lambda d: d.nunique()),
                 f"n_{item_col}_rec": lambda s: s.groupby([f"{item_col}_rec"])[
                     user_col
-                ].transform(lambda d: d.count()),
+                ].transform(lambda d: d.nunique()),
                 f"n_{item_col}": lambda s: s.groupby([item_col])[user_col].transform(
-                    lambda d: d.count()
+                    lambda d: d.nunique()
                 ),
             }
         )
