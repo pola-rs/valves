@@ -84,5 +84,15 @@ def item_item_counts(dataf, user_col="user", item_col="item"):
                 ),
             }
         )
+        .drop(columns=[user_col])
         .drop_duplicates()
+        .reset_index(drop=True)[
+            [
+                f"{item_col}",
+                f"{item_col}_rec",
+                f"n_{item_col}",
+                f"n_{item_col}_rec",
+                "n_both",
+            ]
+        ]
     )
