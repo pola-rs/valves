@@ -40,15 +40,10 @@ def test_pandas_item_item_counts():
 
 def test_dask_item_item_counts():
     """It needs to work on some simple dask datasets"""
-    result = (
-        dd.from_pandas(pd.DataFrame(going_in)).pipe(ii_dd).to_dict(orient="records")
-    )
+    dask_df = dd.from_pandas(pd.DataFrame(going_in), npartitions=1)
+    result = dask_df.pipe(ii_dd).compute().to_dict(orient="records")
     assert result == going_out
-    result = (
-        dd.from_pandas(pd.DataFrame(going_in))
-        .pipe(item_item_counts)
-        .to_dict(orient="records")
-    )
+    result = dask_df.pipe(item_item_counts).compute().to_dict(orient="records")
     assert result == going_out
 
 
