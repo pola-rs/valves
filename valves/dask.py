@@ -57,7 +57,7 @@ def bayes_average(
 
 def item_item_counts(dataf, user_col="user", item_col="item"):
     """
-    Computers item-item overlap counts from user-item interactions, useful for recommendations.
+    Computes item-item overlap counts from user-item interactions, useful for recommendations.
 
     This function is meant to be used in a `.pipe()`-line.
 

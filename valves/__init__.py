@@ -7,6 +7,7 @@ except ImportError:
 else:
     from .polars import sessionize as sess_pl
     from .polars import bayes_average as bayes_average_pl
+    from .polars import item_item_counts as ii_pl
 
 try:
     import pandas as pd
@@ -17,6 +18,7 @@ except ImportError:
 else:
     from .pandas import sessionize as sess_pd
     from .pandas import bayes_average as bayes_average_pd
+    from .pandas import item_item_counts as ii_pd
 
 try:
     import dask.dataframe as dd
@@ -27,6 +29,7 @@ except ImportError:
 else:
     from .dask import sessionize as sess_dd
     from .dask import bayes_average as bayes_average_dd
+    from .dask import item_item_counts as ii_dd
 
 
 def _raise_dataf_error(dataf):
@@ -79,7 +82,7 @@ def bayes_average(
     This function is meant to be used in a `.pipe()`-line.
 
     Arguments:
-        - dataf: dask dataframe
+        - dataf: pandas, polars or dask dataframe
         - group_cols: list of columns to group by
         - target_col: name of the column containing the target value, typically a rating
         - C: smoothing parameter
@@ -92,4 +95,24 @@ def bayes_average(
         return bayes_average_pd(dataf, group_cols, target_col, C, prior_mean, out_col)
     if _POLARS_AVAILABLE and isinstance(dataf, pl.DataFrame):
         return bayes_average_pl(dataf, group_cols, target_col, C, prior_mean, out_col)
+    _raise_dataf_error(dataf)
+
+
+def item_item_counts(dataf, user_col="user", item_col="item"):
+    """
+    Computes item-item overlap counts from user-item interactions, useful for recommendations.
+
+    This function is meant to be used in a `.pipe()`-line.
+
+    Arguments:
+        - dataf: pandas, polars or dask dataframe
+        - user_col: name of the column containing the user id
+        - item_col: name of the column containing the item id
+    """
+    if _DASK_AVAILABLE and isinstance(dataf, dd.DataFrame):
+        return ii_dd(dataf, user_col, item_col)
+    if _PANDAS_AVAILABLE and isinstance(dataf, pd.DataFrame):
+        return ii_pd(dataf, user_col, item_col)
+    if _POLARS_AVAILABLE and isinstance(dataf, pl.DataFrame):
+        return ii_pl(dataf, user_col, item_col)
     _raise_dataf_error(dataf)
