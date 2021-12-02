@@ -64,7 +64,7 @@ def bayes_average(
     )
 
 
-def item_item_counts(dataf, user_col="user", item_col="item", attach=False):
+def item_item_counts(dataf, user_col="user", item_col="item"):
     """
     Computers item-item overlap counts from user-item interactions, useful for recommendations.
 
@@ -75,31 +75,38 @@ def item_item_counts(dataf, user_col="user", item_col="item", attach=False):
         - user_col: name of the column containing the user id
         - item_col: name of the column containing the item id
     """
-    result = (
+    return (
         dataf.with_columns(
             [
-                pl.col(pl.col(item_col))
+                pl.col(item_col)
                 .list()
-                .over("user")
+                .over(user_col)
                 .explode()
-                .alias("item_rec"),
+                .alias(f"{item_col}_rec"),
             ]
         )
-        .filter(pl.col(item_col) != pl.col("item_rec"))
+        .filter(pl.col(item_col) != pl.col(f"{item_col}_rec"))
         .with_columns(
             [
-                pl.col(user_col).count().over(pl.col(item_col)).alias("n_item"),
-                pl.col(user_col).count().over("item_rec").alias("n_item_rec"),
+                pl.col(user_col).count().over(pl.col(item_col)).alias(f"n_{item_col}"),
                 pl.col(user_col)
                 .count()
-                .over([pl.col(item_col), "item_rec"])
+                .over(f"{item_col}_rec")
+                .alias(f"n_{item_col}_rec"),
+                pl.col(user_col)
+                .count()
+                .over([pl.col(item_col), f"{item_col}_rec"])
                 .alias("n_both"),
             ]
         )
+        .select(
+            [
+                f"{item_col}",
+                f"{item_col}_rec",
+                f"n_{item_col}",
+                f"{item_col}_rec",
+                "n_both",
+            ]
+        )
+        .drop_duplicates()
     )
-    if attach:
-        return result
-
-    return result.select(
-        ["item", "item_rec", "n_item", "n_item_rec", "n_both"]
-    ).drop_duplicates()
