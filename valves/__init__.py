@@ -4,6 +4,9 @@ try:
     _POLARS_AVAILABLE = True
 except ImportError:
     _POLARS_AVAILABLE = False
+else:
+    from .polars import sessionize as sess_pl
+    from .polars import bayes_average as bayes_average_pl
 
 try:
     import pandas as pd
@@ -11,7 +14,9 @@ try:
     _PANDAS_AVAILABLE = True
 except ImportError:
     _PANDAS_AVAILABLE = False
-
+else:
+    from .pandas import sessionize as sess_pd
+    from .pandas import bayes_average as bayes_average_pd
 
 try:
     import dask.dataframe as dd
@@ -19,6 +24,9 @@ try:
     _DASK_AVAILABLE = True
 except ImportError:
     _DASK_AVAILABLE = False
+else:
+    from .dask import sessionize as sess_dd
+    from .dask import bayes_average as bayes_average_dd
 
 
 def _raise_dataf_error(dataf):
@@ -48,19 +56,10 @@ def sessionize(dataf, user_col="user", ts_col="timestamp", threshold=20 * 60):
         - threshold: time in seconds to consider a user inactive
     """
     if _DASK_AVAILABLE and isinstance(dataf, dd.DataFrame):
-        # Import dask-related stuff only if dask is detected
-        from .dask import sessionize as sess_dd
-
         return sess_dd(dataf, user_col, ts_col, threshold)
     if _PANDAS_AVAILABLE and isinstance(dataf, pd.DataFrame):
-        # Import pandas-related stuff only if pandas is detected
-        from .pandas import sessionize as sess_pd
-
         return sess_pd(dataf, user_col, ts_col, threshold)
     if _POLARS_AVAILABLE and isinstance(dataf, pl.DataFrame):
-        # Import polars-related stuff only if polars is detected
-        from .polars import sessionize as sess_pl
-
         return sess_pl(dataf, user_col, ts_col, threshold)
     _raise_dataf_error(dataf)
 
@@ -88,18 +87,9 @@ def bayes_average(
         - out_col: name of the column to output
     """
     if _DASK_AVAILABLE and isinstance(dataf, dd.DataFrame):
-        # Import dask-related stuff only if dask is detected
-        from .dask import bayes_average as bayes_dd
-
-        return bayes_dd(dataf, group_cols, target_col, C, prior_mean, out_col)
+        return bayes_average_dd(dataf, group_cols, target_col, C, prior_mean, out_col)
     if _PANDAS_AVAILABLE and isinstance(dataf, pd.DataFrame):
-        # Import pandas-related stuff only if pandas is detected
-        from .pandas import bayes_average as bayes_pd
-
-        return bayes_pd(dataf, group_cols, target_col, C, prior_mean, out_col)
+        return bayes_average_pd(dataf, group_cols, target_col, C, prior_mean, out_col)
     if _POLARS_AVAILABLE and isinstance(dataf, pl.DataFrame):
-        # Import polars-related stuff only if polars is detected
-        from .polars import sessionize as bayes_pl
-
-        return bayes_pl(dataf, group_cols, target_col, C, prior_mean, out_col)
+        return bayes_average_pl(dataf, group_cols, target_col, C, prior_mean, out_col)
     _raise_dataf_error(dataf)
