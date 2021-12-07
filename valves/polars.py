@@ -62,3 +62,51 @@ def bayes_average(
             / (C + pl.col(target_col).count().over(group_cols))
         ).alias(out_col)
     )
+
+
+def item_item_counts(dataf, user_col="user", item_col="item"):
+    """
+    Computes item-item overlap counts from user-item interactions, useful for recommendations.
+
+    This function is meant to be used in a `.pipe()`-line.
+
+    Arguments:
+        - dataf: polars dataframe
+        - user_col: name of the column containing the user id
+        - item_col: name of the column containing the item id
+    """
+    return (
+        dataf.with_columns(
+            [
+                pl.col(item_col).list().over("user").alias(f"{item_col}_rec"),
+            ]
+        )
+        .explode(f"{item_col}_rec")
+        .filter(pl.col(item_col) != pl.col(f"{item_col}_rec"))
+        .with_columns(
+            [
+                pl.col(user_col)
+                .n_unique()
+                .over(pl.col(item_col))
+                .alias(f"n_{item_col}"),
+                pl.col(user_col)
+                .n_unique()
+                .over(f"{item_col}_rec")
+                .alias(f"n_{item_col}_rec"),
+                pl.col(user_col)
+                .n_unique()
+                .over([pl.col(item_col), f"{item_col}_rec"])
+                .alias("n_both"),
+            ]
+        )
+        .select(
+            [
+                f"{item_col}",
+                f"{item_col}_rec",
+                f"n_{item_col}",
+                f"n_{item_col}_rec",
+                "n_both",
+            ]
+        )
+        .drop_duplicates()
+    )

@@ -53,3 +53,46 @@ def bayes_average(
         .drop(columns=["sum", "size"])
     )
     return dataf.join(to_join_back, on=group_cols).reset_index()
+
+
+def item_item_counts(dataf, user_col="user", item_col="item"):
+    """
+    Computes item-item overlap counts from user-item interactions, useful for recommendations.
+
+    This function is meant to be used in a `.pipe()`-line.
+
+    Arguments:
+        - dataf: dask dataframe
+        - user_col: name of the column containing the user id
+        - item_col: name of the column containing the item id
+    """
+    user_items = dataf[["user", "item"]].drop_duplicates()
+    return (
+        user_items.merge(user_items, how="left", on="user")
+        .rename(columns={f"{item_col}_x": item_col, f"{item_col}_y": f"{item_col}_rec"})
+        .loc[lambda d: d[item_col] != d[f"{item_col}_rec"]]
+        .assign(
+            **{
+                "n_both": lambda s: s.groupby([item_col, f"{item_col}_rec"])[
+                    user_col
+                ].transform(lambda d: d.nunique()),
+                f"n_{item_col}_rec": lambda s: s.groupby([f"{item_col}_rec"])[
+                    user_col
+                ].transform(lambda d: d.nunique()),
+                f"n_{item_col}": lambda s: s.groupby([item_col])[user_col].transform(
+                    lambda d: d.nunique()
+                ),
+            }
+        )
+        .drop(columns=[user_col])
+        .drop_duplicates()
+        .reset_index(drop=True)[
+            [
+                f"{item_col}",
+                f"{item_col}_rec",
+                f"n_{item_col}",
+                f"n_{item_col}_rec",
+                "n_both",
+            ]
+        ]
+    )

@@ -15,6 +15,7 @@ test_packages = [
     "mktestdocs>=0.1.0",
     "interrogate>=1.2.0",
     "pre-commit>=2.15.0",
+    "pyarrow>=6.0.1",
 ] + all_dep_packages
 
 docs_packages = [
